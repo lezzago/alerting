@@ -13,11 +13,13 @@
  *   permissions and limitations under the License.
  */
 
-package com.amazon.opendistroforelasticsearch.alerting.destination.message;
+package com.amazon.opendistroforelasticsearch.alerting.destination.credentials;
+
+import com.amazonaws.auth.AWSCredentialsProvider;
 
 /**
- * Supported notification destinations
+ * Interface which enables to plug in multiple Credentials Providers
  */
-public enum DestinationType {
-    SNS, CHIME, SLACK, CUSTOMWEBHOOK
+public interface CredentialsProviderFactory {
+    public AWSCredentialsProvider getProvider(String roleArn);
 }

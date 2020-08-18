@@ -18,6 +18,7 @@ package com.amazon.opendistroforelasticsearch.alerting.util
 enum class DestinationType(val value: String) {
     CHIME("chime"),
     SLACK("slack"),
+    SNS("sns"),
     CUSTOM_WEBHOOK("custom_webhook"),
     TEST_ACTION("test_action")
 }

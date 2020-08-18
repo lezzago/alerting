@@ -15,9 +15,11 @@
 
 package com.amazon.opendistroforelasticsearch.alerting.model
 
+import com.amazon.opendistroforelasticsearch.alerting.destination.util.Util
 import com.amazon.opendistroforelasticsearch.alerting.model.destination.Chime
 import com.amazon.opendistroforelasticsearch.alerting.model.destination.CustomWebhook
 import com.amazon.opendistroforelasticsearch.alerting.model.destination.Destination
+import com.amazon.opendistroforelasticsearch.alerting.model.destination.SNS
 import com.amazon.opendistroforelasticsearch.alerting.model.destination.Slack
 import com.amazon.opendistroforelasticsearch.alerting.util.DestinationType
 import org.elasticsearch.common.io.stream.BytesStreamOutput
@@ -53,6 +55,38 @@ class DestinationTests : ESTestCase() {
         }
     }
 
+    fun `test sns destination`() {
+        Util.SNS_ODFE_SUPPORT = false
+        val sns = SNS("arn:aws:sns:us-west-2:475347751589:test-notification", "arn:aws:iam::853806060000:role/domain/abc")
+        assertEquals("topic arn is manipulated", sns.topicARN, "arn:aws:sns:us-west-2:475347751589:test-notification")
+        assertEquals("role arn is manipulated", sns.roleARN, "arn:aws:iam::853806060000:role/domain/abc")
+    }
+
+    fun `test sns destination with invalid topic arn`() {
+        try {
+            Util.SNS_ODFE_SUPPORT = false
+            SNS("arn:asdas:sns:475347751589:test-notification", "arn:aws:iam::853806060000:role/domain/abc")
+            fail("Creating a sns destination with invalid topic arn did not fail.")
+        } catch (ignored: IllegalArgumentException) {
+        }
+    }
+
+    fun `test sns destination with invalid role arn`() {
+        try {
+            Util.SNS_ODFE_SUPPORT = false
+            SNS("arn:aws:sns:us-west-2:475347751589:test-notification", "arn:aws:iamiam::853806060000:role/domain/abc")
+            fail("Creating a sns destination with invalid role arn did not fail.")
+        } catch (ignored: IllegalArgumentException) {
+        }
+    }
+
+    fun `test sns destination with invalid role arn for sns odfe support`() {
+        Util.SNS_ODFE_SUPPORT = true
+        val sns = SNS("arn:aws:sns:us-west-2:475347751589:test-notification", null)
+        assertEquals("topic arn is manipulated", sns.topicARN, "arn:aws:sns:us-west-2:475347751589:test-notification")
+        assertNull("role arn is being validated even though SNS_ODFE_SUPPORT is enabled", sns.roleARN)
+    }
+
     fun `test custom webhook destination with url and no host`() {
         val customWebhook = CustomWebhook("http://abc.com", null, null, -1, null, emptyMap(), emptyMap(), null, null)
         assertEquals("Url is manipulated", customWebhook.url, "http://abc.com")
@@ -82,7 +116,7 @@ class DestinationTests : ESTestCase() {
 
     fun `test chime destination create using stream`() {
         val chimeDest = Destination("1234", 0L, 1, DestinationType.CHIME, "TestChimeDest",
-                Instant.now(), Chime("test.com"), null, null)
+                Instant.now(), Chime("test.com"), null, null, null)
 
         val out = BytesStreamOutput()
         chimeDest.writeTo(out)
@@ -103,7 +137,7 @@ class DestinationTests : ESTestCase() {
 
     fun `test slack destination create using stream`() {
         val chimeDest = Destination("2345", 1L, 2, DestinationType.SLACK, "TestSlackDest",
-                Instant.now(), null, Slack("mytest.com"), null)
+                Instant.now(), null, Slack("mytest.com"), null, null)
 
         val out = BytesStreamOutput()
         chimeDest.writeTo(out)
@@ -132,6 +166,7 @@ class DestinationTests : ESTestCase() {
                 Instant.now(),
                 null,
                 null,
+                null,
                 CustomWebhook(
                     "test.com",
                     "schema",
@@ -158,6 +193,7 @@ class DestinationTests : ESTestCase() {
         assertNotNull(newDest.lastUpdateTime)
         assertNull(newDest.chime)
         assertNull(newDest.slack)
+        assertNull(newDest.sns)
         assertNotNull(newDest.customWebhook)
     }
 
@@ -169,6 +205,7 @@ class DestinationTests : ESTestCase() {
                 DestinationType.SLACK,
                 "TestSlackDest",
                 Instant.now(),
+                null,
                 null,
                 null,
                 CustomWebhook(

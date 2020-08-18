@@ -46,6 +46,7 @@ import com.amazon.opendistroforelasticsearch.alerting.model.action.Action.Compan
 import com.amazon.opendistroforelasticsearch.alerting.model.destination.Destination
 import com.amazon.opendistroforelasticsearch.alerting.script.TriggerExecutionContext
 import com.amazon.opendistroforelasticsearch.alerting.script.TriggerScript
+import com.amazon.opendistroforelasticsearch.alerting.settings.AWSSettings
 import com.amazon.opendistroforelasticsearch.alerting.settings.AlertingSettings.Companion.ALERT_BACKOFF_COUNT
 import com.amazon.opendistroforelasticsearch.alerting.settings.AlertingSettings.Companion.ALERT_BACKOFF_MILLIS
 import com.amazon.opendistroforelasticsearch.alerting.settings.AlertingSettings.Companion.MOVE_ALERTS_BACKOFF_COUNT
@@ -114,6 +115,7 @@ class MonitorRunner(
         BackoffPolicy.constantBackoff(ALERT_BACKOFF_MILLIS.get(settings), ALERT_BACKOFF_COUNT.get(settings))
     @Volatile private var moveAlertsRetryPolicy =
         BackoffPolicy.exponentialBackoff(MOVE_ALERTS_BACKOFF_MILLIS.get(settings), MOVE_ALERTS_BACKOFF_COUNT.get(settings))
+    @Volatile private var awsSettings = AWSSettings.parse(settings)
 
     init {
         clusterService.clusterSettings.addSettingsUpdateConsumer(ALERT_BACKOFF_MILLIS, ALERT_BACKOFF_COUNT) {
@@ -433,7 +435,7 @@ class MonitorRunner(
             if (!dryrun) {
                 withContext(Dispatchers.IO) {
                     val destination = getDestinationInfo(action.destinationId)
-                    actionOutput[MESSAGE_ID] = destination.publish(actionOutput[SUBJECT], actionOutput[MESSAGE]!!)
+                    actionOutput[MESSAGE_ID] = destination.publish(awsSettings, actionOutput[SUBJECT], actionOutput[MESSAGE]!!)
                 }
             }
             ActionRunResult(action.id, action.name, actionOutput, false, currentTime(), null)

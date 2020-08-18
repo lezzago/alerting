@@ -30,6 +30,7 @@ public class DestinationFactoryProvider {
     private static Map<DestinationType, DestinationFactory> destinationFactoryMap = new HashMap<>();
 
     static {
+        destinationFactoryMap.put(DestinationType.SNS, new SNSDestinationFactory());
         destinationFactoryMap.put(DestinationType.CHIME, new ChimeDestinationFactory());
         destinationFactoryMap.put(DestinationType.SLACK, new SlackDestinationFactory());
         destinationFactoryMap.put(DestinationType.CUSTOMWEBHOOK, new CustomWebhookDestinationFactory());

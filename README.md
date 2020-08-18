@@ -21,6 +21,7 @@ When trigger conditions are met, you can publish messages to the following desti
 * [Slack](https://slack.com/)
 * Custom webhook
 * [Amazon Chime](https://aws.amazon.com/chime/)
+* [Amazon SNS](https://aws.amazon.com/sns/)
 
 Messages can be static strings, or you can use the [Mustache](https://mustache.github.io/mustache.5.html) templates to include contextual information.
 
@@ -44,6 +45,7 @@ All subprojects in this package use the [Gradle](https://docs.gradle.org/current
 
 However, to build the `alerting` plugin subproject, we also use the Elastic build tools for Gradle.  These tools are idiosyncratic and don't always follow the conventions and instructions for building regular Java code using Gradle. Not everything in `alerting` will work the way it's described in the Gradle documentation. If you encounter such a situation, the Elastic build tools [source code](https://github.com/elastic/elasticsearch/tree/master/buildSrc/src/main/groovy/org/elasticsearch/gradle) is your best bet for figuring out what's going on.
 
+Note: In order for the SNS destination to work, please add the following line in the `elasticsearch.yml` file: `opendistro.alerting.destination.sns.enabled: true`.
 
 ### Building from the command line
 

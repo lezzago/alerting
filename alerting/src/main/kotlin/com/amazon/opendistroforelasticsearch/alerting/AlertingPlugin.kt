@@ -38,6 +38,7 @@ import com.amazon.opendistroforelasticsearch.alerting.resthandler.RestIndexDesti
 import com.amazon.opendistroforelasticsearch.alerting.resthandler.RestIndexMonitorAction
 import com.amazon.opendistroforelasticsearch.alerting.resthandler.RestSearchMonitorAction
 import com.amazon.opendistroforelasticsearch.alerting.script.TriggerScript
+import com.amazon.opendistroforelasticsearch.alerting.settings.AWSSettings
 import com.amazon.opendistroforelasticsearch.alerting.settings.AlertingSettings
 import com.amazon.opendistroforelasticsearch.alerting.transport.TransportDeleteDestinationAction
 import com.amazon.opendistroforelasticsearch.alerting.transport.TransportIndexDestinationAction
@@ -183,7 +184,10 @@ internal class AlertingPlugin : PainlessExtension, ActionPlugin, ScriptPlugin, P
                 AlertingSettings.ALERT_HISTORY_RETENTION_PERIOD,
                 AlertingSettings.ALERTING_MAX_MONITORS,
                 AlertingSettings.REQUEST_TIMEOUT,
-                AlertingSettings.MAX_ACTION_THROTTLE_VALUE)
+                AlertingSettings.MAX_ACTION_THROTTLE_VALUE,
+                AWSSettings.SNS_IAM_USER_ACCESS_KEY,
+                AWSSettings.SNS_IAM_USER_SECRET_KEY,
+                AWSSettings.SNS_ODFE_SUPPORT)
     }
 
     override fun onIndexModule(indexModule: IndexModule) {

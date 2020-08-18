@@ -116,6 +116,7 @@ abstract class AlertingRestTestCase : ODFERestTestCase() {
                 lastUpdateTime = Instant.now(),
                 chime = null,
                 slack = null,
+                sns = null,
                 customWebhook = null)
     }
 

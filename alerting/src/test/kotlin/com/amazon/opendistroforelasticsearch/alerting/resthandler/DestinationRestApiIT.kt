@@ -21,6 +21,7 @@ import com.amazon.opendistroforelasticsearch.alerting.model.destination.Chime
 import com.amazon.opendistroforelasticsearch.alerting.model.destination.CustomWebhook
 import com.amazon.opendistroforelasticsearch.alerting.model.destination.Destination
 import com.amazon.opendistroforelasticsearch.alerting.model.destination.Slack
+import com.amazon.opendistroforelasticsearch.alerting.model.destination.SNS
 import com.amazon.opendistroforelasticsearch.alerting.makeRequest
 import com.amazon.opendistroforelasticsearch.alerting.util.DestinationType
 import org.elasticsearch.rest.RestStatus
@@ -40,6 +41,7 @@ class DestinationRestApiIT : AlertingRestTestCase() {
                 lastUpdateTime = Instant.now(),
                 chime = chime,
                 slack = null,
+                sns = null,
                 customWebhook = null)
         val createdDestination = createDestination(destination = destination)
         assertEquals("Incorrect destination name", createdDestination.name, "test")
@@ -70,6 +72,7 @@ class DestinationRestApiIT : AlertingRestTestCase() {
                 lastUpdateTime = Instant.now(),
                 chime = null,
                 slack = slack,
+                sns = null,
                 customWebhook = null)
         val createdDestination = createDestination(destination = destination)
         assertEquals("Incorrect destination name", createdDestination.name, "test")
@@ -92,6 +95,43 @@ class DestinationRestApiIT : AlertingRestTestCase() {
         assertEquals("Incorrect destination url after update", "http://updated2.com", updatedDestination.slack?.url)
     }
 
+    fun `test creating a sns destination`() {
+        val sns = SNS("arn:aws:sns:us-west-2:475347751589:test-notification", "arn:aws:iam::853806060000:role/domain/abc")
+        val destination = Destination(
+                type = DestinationType.SNS,
+                name = "test",
+                lastUpdateTime = Instant.now(),
+                chime = null,
+                slack = null,
+                sns = sns,
+                customWebhook = null)
+        val createdDestination = createDestination(destination = destination)
+        assertEquals("Incorrect destination name", createdDestination.name, "test")
+        assertEquals("Incorrect destination type", createdDestination.type, DestinationType.SNS)
+        Assert.assertNotNull("sns object should not be null", createdDestination.sns)
+    }
+
+    fun `test updating a sns destination`() {
+        val destination = createDestination()
+        val sns = SNS("arn:aws:sns:us-west-2:475347751589:test-notification", "arn:aws:iam::853806060000:role/domain/abc")
+        var updatedDestination = updateDestination(
+                destination.copy(name = "updatedName", sns = sns, type = DestinationType.SNS))
+        assertEquals("Incorrect destination name after update", updatedDestination.name, "updatedName")
+        assertEquals("Incorrect destination ID after update", updatedDestination.id, destination.id)
+        assertEquals("Incorrect destination type after update", updatedDestination.type, DestinationType.SNS)
+        assertEquals("Incorrect destination sns topic arn after update",
+                "arn:aws:sns:us-west-2:475347751589:test-notification", updatedDestination.sns?.topicARN)
+        assertEquals("Incorrect destination sns role arn after update",
+                "arn:aws:iam::853806060000:role/domain/abc", updatedDestination.sns?.roleARN)
+        val updatedSns = SNS("arn:aws:sns:us-west-3:475347751589:test-notification", "arn:aws:iam::123456789012:role/domain/abc")
+        updatedDestination = updateDestination(
+                destination.copy(name = "updatedName", sns = updatedSns, type = DestinationType.SNS))
+        assertEquals("Incorrect destination sns topic arn after update",
+                "arn:aws:sns:us-west-3:475347751589:test-notification", updatedDestination.sns?.topicARN)
+        assertEquals("Incorrect destination sns role arn after update",
+                "arn:aws:iam::123456789012:role/domain/abc", updatedDestination.sns?.roleARN)
+    }
+
     fun `test creating a custom webhook destination with url`() {
         val customWebhook = CustomWebhook("http://abc.com", null, null, 80, null, emptyMap(), emptyMap(), null, null)
         val destination = Destination(
@@ -100,6 +140,7 @@ class DestinationRestApiIT : AlertingRestTestCase() {
                 lastUpdateTime = Instant.now(),
                 chime = null,
                 slack = null,
+                sns = null,
                 customWebhook = customWebhook)
         val createdDestination = createDestination(destination = destination)
         assertEquals("Incorrect destination name", createdDestination.name, "test")
@@ -116,6 +157,7 @@ class DestinationRestApiIT : AlertingRestTestCase() {
                 lastUpdateTime = Instant.now(),
                 chime = null,
                 slack = null,
+                sns = null,
                 customWebhook = customWebhook)
         val createdDestination = createDestination(destination = destination)
         assertEquals("Incorrect destination name", createdDestination.name, "test")

@@ -20,10 +20,12 @@ import com.amazon.opendistroforelasticsearch.alerting.destination.message.BaseMe
 import com.amazon.opendistroforelasticsearch.alerting.destination.message.ChimeMessage
 import com.amazon.opendistroforelasticsearch.alerting.destination.message.CustomWebhookMessage
 import com.amazon.opendistroforelasticsearch.alerting.destination.message.SlackMessage
+import com.amazon.opendistroforelasticsearch.alerting.destination.message.SNSMessage
 import com.amazon.opendistroforelasticsearch.alerting.destination.response.DestinationHttpResponse
 import com.amazon.opendistroforelasticsearch.alerting.elasticapi.convertToMap
 import com.amazon.opendistroforelasticsearch.alerting.elasticapi.instant
 import com.amazon.opendistroforelasticsearch.alerting.elasticapi.optionalTimeField
+import com.amazon.opendistroforelasticsearch.alerting.settings.AWSSettings
 import com.amazon.opendistroforelasticsearch.alerting.util.DestinationType
 import com.amazon.opendistroforelasticsearch.alerting.util.IndexUtils.Companion.NO_SCHEMA_VERSION
 import org.apache.logging.log4j.LogManager
@@ -49,6 +51,7 @@ data class Destination(
     val lastUpdateTime: Instant,
     val chime: Chime?,
     val slack: Slack?,
+    val sns: SNS?,
     val customWebhook: CustomWebhook?
 ) : ToXContent {
 
@@ -88,6 +91,10 @@ data class Destination(
         } else {
             out.writeBoolean(false)
         }
+        if (sns != null) {
+            out.writeBoolean(true)
+            sns.writeTo(out)
+        }
         if (customWebhook != null) {
             out.writeBoolean(true)
             customWebhook.writeTo(out)
@@ -106,6 +113,7 @@ data class Destination(
         const val LAST_UPDATE_TIME_FIELD = "last_update_time"
         const val CHIME = "chime"
         const val SLACK = "slack"
+        const val SNS_TYPE = "sns"
         const val CUSTOMWEBHOOK = "custom_webhook"
         // This constant is used for test actions created part of integ tests
         const val TEST_ACTION = "test"
@@ -119,6 +127,7 @@ data class Destination(
             lateinit var name: String
             lateinit var type: String
             var slack: Slack? = null
+            var sns: SNS? = null
             var chime: Chime? = null
             var customWebhook: CustomWebhook? = null
             var lastUpdateTime: Instant? = null
@@ -145,6 +154,9 @@ data class Destination(
                     SLACK -> {
                         slack = Slack.parse(xcp)
                     }
+                    SNS_TYPE -> {
+                        sns = SNS.parse(xcp)
+                    }
                     CUSTOMWEBHOOK -> {
                         customWebhook = CustomWebhook.parse(xcp)
                     }
@@ -167,6 +179,7 @@ data class Destination(
                     lastUpdateTime ?: Instant.now(),
                     chime,
                     slack,
+                    sns,
                     customWebhook)
         }
 
@@ -182,13 +195,14 @@ data class Destination(
                 sin.readInstant(), // lastUpdateTime
                 Chime.readFrom(sin), // chime
                 Slack.readFrom(sin), // slack
+                SNS.readFrom(sin), // sns
                 CustomWebhook.readFrom(sin) // customWebhook
             )
         }
     }
 
     @Throws(IOException::class)
-    fun publish(compiledSubject: String?, compiledMessage: String): String {
+    fun publish(AWSSettings: AWSSettings, compiledSubject: String?, compiledMessage: String): String {
         val destinationMessage: BaseMessage
         when (type) {
             DestinationType.CHIME -> {
@@ -203,6 +217,16 @@ data class Destination(
                 destinationMessage = SlackMessage.Builder(name)
                         .withUrl(slack?.url)
                         .withMessage(messageContent)
+                        .build()
+            }
+            DestinationType.SNS -> {
+                destinationMessage = SNSMessage.Builder(name)
+                        .withRole(sns?.roleARN)
+                        .withTopicArn(sns?.topicARN)
+                        .withIAMAccessKey(AWSSettings.snsIamUser)
+                        .withIAMSecretKey(AWSSettings.snsIamPassword)
+                        .withSubject(compiledSubject)
+                        .withMessage(compiledMessage)
                         .build()
             }
             DestinationType.CUSTOM_WEBHOOK -> {
@@ -231,6 +255,7 @@ data class Destination(
             DestinationType.CHIME -> content = chime?.convertToMap()?.get(type.value)
             DestinationType.SLACK -> content = slack?.convertToMap()?.get(type.value)
             DestinationType.CUSTOM_WEBHOOK -> content = customWebhook?.convertToMap()?.get(type.value)
+            DestinationType.SNS -> content = sns?.convertToMap()?.get(type.value)
             DestinationType.TEST_ACTION -> content = "dummy"
         }
         if (content == null) {

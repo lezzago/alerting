@@ -15,6 +15,9 @@
 
 package com.amazon.opendistroforelasticsearch.alerting.model.destination
 
+import com.amazon.opendistroforelasticsearch.alerting.destination.util.Util.SNS_ODFE_SUPPORT
+import org.elasticsearch.common.io.stream.StreamInput
+import org.elasticsearch.common.io.stream.StreamOutput
 import org.elasticsearch.common.xcontent.ToXContent
 import org.elasticsearch.common.xcontent.XContentBuilder
 import org.elasticsearch.common.xcontent.XContentParser
@@ -23,11 +26,13 @@ import java.io.IOException
 import java.lang.IllegalStateException
 import java.util.regex.Pattern
 
-data class SNS(val topicARN: String, val roleARN: String) : ToXContent {
+data class SNS(val topicARN: String, val roleARN: String?) : ToXContent {
 
     init {
         require(SNS_ARN_REGEX.matcher(topicARN).find()) { "Invalid AWS SNS topic ARN: $topicARN" }
-        require(IAM_ARN_REGEX.matcher(roleARN).find()) { "Invalid AWS role ARN: $roleARN " }
+        if (!SNS_ODFE_SUPPORT) {
+            require(IAM_ARN_REGEX.matcher(roleARN).find()) { "Invalid AWS role ARN: $roleARN " }
+        }
     }
 
     override fun toXContent(builder: XContentBuilder, params: ToXContent.Params): XContentBuilder {
@@ -35,6 +40,12 @@ data class SNS(val topicARN: String, val roleARN: String) : ToXContent {
                 .field(TOPIC_ARN_FIELD, topicARN)
                 .field(ROLE_ARN_FIELD, roleARN)
                 .endObject()
+    }
+
+    @Throws(IOException::class)
+    fun writeTo(out: StreamOutput) {
+        out.writeString(topicARN)
+        out.writeOptionalString(roleARN)
     }
 
     companion object {
@@ -66,6 +77,17 @@ data class SNS(val topicARN: String, val roleARN: String) : ToXContent {
             }
             return SNS(requireNotNull(topicARN) { "SNS Action topic_arn is null" },
                     requireNotNull(roleARN) { "SNS Action role_arn is null" })
+        }
+
+        @JvmStatic
+        @Throws(IOException::class)
+        fun readFrom(sin: StreamInput): SNS? {
+            return if (sin.readBoolean()) {
+                SNS(
+                    sin.readString(), // topicARN
+                    sin.readOptionalString() // roleARN
+                )
+            } else null
         }
     }
 }
