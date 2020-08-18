@@ -94,6 +94,8 @@ data class Destination(
         if (sns != null) {
             out.writeBoolean(true)
             sns.writeTo(out)
+        } else {
+            out.writeBoolean(false)
         }
         if (customWebhook != null) {
             out.writeBoolean(true)
