@@ -39,7 +39,10 @@ data class AWSSettings(
                 null
         )
 
-        val SNS_ODFE_SUPPORT = Setting.boolSetting("opendistro.alerting.destination.sns.enabled", false, Setting.Property.NodeScope)
+        val SNS_ODFE_SUPPORT = Setting.boolSetting(
+                "opendistro.alerting.destination.sns.enabled",
+                false,
+                Setting.Property.NodeScope)
 
         @JvmStatic
         @Throws(IOException::class)
