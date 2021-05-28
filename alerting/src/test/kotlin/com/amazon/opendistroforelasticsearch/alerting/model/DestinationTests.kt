@@ -159,29 +159,29 @@ class DestinationTests : ESTestCase() {
         assertNull(newDest.email)
     }
 
-    fun `test sns destination create using stream`() {
-        val sns = SNS("arn:aws:sns:us-west-2:475347751589:test-notification", null)
-        val snsDest = Destination("2345", 1L, 2, 1, 1, DestinationType.SNS, "TestSnsDest",
-            randomUser(), Instant.now(), null, null, sns, null, null)
-
-        val out = BytesStreamOutput()
-        snsDest.writeTo(out)
-        val sin = StreamInput.wrap(out.bytes().toBytesRef().bytes)
-        val newDest = Destination.readFrom(sin)
-
-        assertNotNull(newDest)
-        assertEquals("2345", newDest.id)
-        assertEquals(1, newDest.version)
-        assertEquals(2, newDest.schemaVersion)
-        assertEquals(DestinationType.SNS, newDest.type)
-        assertEquals("TestSnsDest", newDest.name)
-        assertNotNull(newDest.lastUpdateTime)
-        assertNull(newDest.chime)
-        assertNull(newDest.slack)
-        assertNotNull(newDest.sns)
-        assertNull(newDest.customWebhook)
-        assertNull(newDest.email)
-    }
+//    fun `test sns destination create using stream`() {
+//        val sns = SNS("arn:aws:sns:us-west-2:475347751589:test-notification", null)
+//        val snsDest = Destination("2345", 1L, 2, 1, 1, DestinationType.SNS, "TestSnsDest",
+//            randomUser(), Instant.now(), null, null, sns, null, null)
+//
+//        val out = BytesStreamOutput()
+//        snsDest.writeTo(out)
+//        val sin = StreamInput.wrap(out.bytes().toBytesRef().bytes)
+//        val newDest = Destination.readFrom(sin)
+//
+//        assertNotNull(newDest)
+//        assertEquals("2345", newDest.id)
+//        assertEquals(1, newDest.version)
+//        assertEquals(2, newDest.schemaVersion)
+//        assertEquals(DestinationType.SNS, newDest.type)
+//        assertEquals("TestSnsDest", newDest.name)
+//        assertNotNull(newDest.lastUpdateTime)
+//        assertNull(newDest.chime)
+//        assertNull(newDest.slack)
+//        assertNotNull(newDest.sns)
+//        assertNull(newDest.customWebhook)
+//        assertNull(newDest.email)
+//    }
 
     fun `test customwebhook destination create using stream`() {
         val customWebhookDest = Destination(
@@ -353,11 +353,11 @@ class DestinationTests : ESTestCase() {
         assertEquals("role arn is manipulated", sns.roleARN, "arn:aws:iam::853806060000:role/domain/abc")
     }
 
-    fun `test sns destination without role support`() {
-        val sns = SNS("arn:aws:sns:us-west-2:475347751589:test-notification", null)
-        assertEquals("topic arn is manipulated", sns.topicARN, "arn:aws:sns:us-west-2:475347751589:test-notification")
-        assertNull("role arn is manipulated", sns.roleARN)
-    }
+//    fun `test sns destination without role support`() {
+//        val sns = SNS("arn:aws:sns:us-west-2:475347751589:test-notification", null)
+//        assertEquals("topic arn is manipulated", sns.topicARN, "arn:aws:sns:us-west-2:475347751589:test-notification")
+//        assertNull("role arn is manipulated", sns.roleARN)
+//    }
 
     fun `test sns destination with invalid topic arn`() {
         try {

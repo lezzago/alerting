@@ -15,6 +15,7 @@
 
 package com.amazon.opendistroforelasticsearch.alerting.destination.message;
 
+import com.amazon.opendistroforelasticsearch.alerting.destination.util.PropertyHelper;
 import com.amazon.opendistroforelasticsearch.alerting.destination.util.Util;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.settings.SecureString;
@@ -42,20 +43,12 @@ public class SNSMessage extends BaseMessage {
             throw new IllegalArgumentException("Channel Type does not match SNS");
         }
 
-        if (roleArn == null && (iamAccessKey == null || Strings.isNullOrEmpty(iamAccessKey.toString()))) {
-            throw new IllegalArgumentException("IAM user access key is missing");
-        }
-
-        if (roleArn == null && (iamSecretKey == null || Strings.isNullOrEmpty(iamSecretKey.toString()))) {
-            throw new IllegalArgumentException("IAM user secret key is missing");
-        }
-
         if (Strings.isNullOrEmpty(topicArn) || !Util.isValidSNSArn(topicArn)) {
             throw new IllegalArgumentException("Topic arn is missing/invalid: " + topicArn);
         }
 
-        if (roleArn != null && !Util.isValidIAMArn(roleArn)) {
-            throw new IllegalArgumentException("Role arn is invalid: " + roleArn);
+        if (PropertyHelper.shouldUseRoleArn() && (roleArn == null || !Util.isValidIAMArn(roleArn))) {
+            throw new IllegalArgumentException("Role arn is missing/invalid: " + roleArn);
         }
 
         if (Strings.isNullOrEmpty(message)) {

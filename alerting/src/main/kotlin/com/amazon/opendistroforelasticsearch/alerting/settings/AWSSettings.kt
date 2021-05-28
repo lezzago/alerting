@@ -15,7 +15,6 @@
 
 package com.amazon.opendistroforelasticsearch.alerting.settings
 
-import com.amazon.opendistroforelasticsearch.alerting.util.DestinationType
 import org.elasticsearch.common.settings.SecureSetting
 import org.elasticsearch.common.settings.SecureString
 import org.elasticsearch.common.settings.Settings
@@ -43,7 +42,6 @@ data class AWSSettings(
         @JvmStatic
         @Throws(IOException::class)
         fun parse(settings: Settings): AWSSettings {
-            DestinationType.snsUseIamRole = SNS_IAM_USER_ACCESS_KEY.get(settings) == null
             return AWSSettings(
                     SNS_IAM_USER_ACCESS_KEY.get(settings),
                     SNS_IAM_USER_SECRET_KEY.get(settings)

@@ -38,4 +38,8 @@ public class PropertyHelper {
         }
         return destinationFactoryMap;
     }
+
+    public static Boolean shouldUseRoleArn() {
+        return Boolean.parseBoolean((String)properties.get("use_role_arn"));
+    }
 }

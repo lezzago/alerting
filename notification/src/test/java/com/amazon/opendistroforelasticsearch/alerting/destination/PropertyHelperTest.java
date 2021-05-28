@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.util.Map;
 
+import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -21,5 +22,11 @@ public class PropertyHelperTest {
         assertTrue(destMap.containsKey(DestinationType.SNS));
         assertTrue(destMap.containsKey(DestinationType.CUSTOMWEBHOOK));
         assertTrue(destMap.containsKey(DestinationType.EMAIL));
+    }
+
+    @Test
+    public void testShouldUseRoleArn() {
+        Boolean shouldUseRoleArn = PropertyHelper.shouldUseRoleArn();
+        assertFalse(shouldUseRoleArn);
     }
 }

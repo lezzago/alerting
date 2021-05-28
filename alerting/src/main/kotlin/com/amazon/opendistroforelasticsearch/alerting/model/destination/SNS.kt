@@ -31,8 +31,8 @@ data class SNS(val topicARN: String, val roleARN: String?) : ToXContent {
 
     init {
         require(SNS_ARN_REGEX.matcher(topicARN).find()) { "Invalid AWS SNS topic ARN: $topicARN" }
-        if (roleARN != null) {
-            require(IAM_ARN_REGEX.matcher(roleARN).find()) { "Invalid AWS role ARN: $roleARN " }
+        if (DestinationType.snsUseIamRole) {
+            require(roleARN != null && IAM_ARN_REGEX.matcher(roleARN).find()) { "Invalid AWS role ARN: $roleARN " }
         }
     }
 
